@@ -1,0 +1,7 @@
+export DATABASE_URL='postgresql://postgres@localhost:5432/travelapi'
+export database_name='travelapi'
+export database_path='postgresql:///travelapi'
+export AUTH0_DOMAIN='dev-erzw805b.eu.auth0.com'
+export ALGORITHMS='RS256'
+export API_AUDIENCE='travelbook'
+export AUTH0_CLIENT_ID='RSilWGC5JNrZtgPsM9CLK6X5NZMNFWtJ'
