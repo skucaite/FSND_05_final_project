@@ -1,22 +1,20 @@
 import os
 import sys
-from flask import Flask, render_template, url_for, flash, request, abort, jsonify
+from flask import Flask, render_template, url_for, request, abort, jsonify
 from flask_migrate import Migrate
 import json
 from flask_cors import CORS
 
-from auth import AuthError, requires_auth
-from models import setup_db, Guide, Travel, db, db_drop_and_create_all
+from .auth import AuthError, requires_auth
+from .models import setup_db, Guide, Travel, db, db_drop_and_create_all
 
 
-# Filters
+# Filters ------------------------------------------#
 def format_list(selection_query):
     item_list = [item.format() for item in selection_query]
     return item_list
 
-#----------------------------------------------------------------------------#
-# Creating APP
-#----------------------------------------------------------------------------#
+# Creating APP -------------------------------------#
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
@@ -28,25 +26,21 @@ def create_app(test_config=None):
     @app.route('/')
     @app.route('/home')
     def home():
-            return 'Welcome to a TravelBook!'
+        return render_template('home.html')
 
-
-    #----------------------------------------------------------------------------#
-    # Guides
-    #----------------------------------------------------------------------------#
-    @app.route('/guides')
+    # Guides ---------------------------------------#
+    @app.route('/guides', methods=['GET'])
     @requires_auth('read:guides')
     def guides(jwt):
         guides = Guide.query.all()
         try:
             guides_list = format_list(Guide.query.all())
             return jsonify({
-            'success': True,
-            'guides': guides_list
-            })
+                'success': True,
+                'guides': guides_list
+                })
         except Exception:
             abort(404)
-
 
     # Create Guide
     @app.route('/guides', methods=['POST'])
@@ -67,10 +61,9 @@ def create_app(test_config=None):
                 'success': True,
                 'created': guide.id,
                 'guides': guides_list
-            })
+                })
         except Exception:
             abort(404)
-
 
     # Update Guide
     @app.route('/guides/<id>', methods=['PATCH'])
@@ -99,41 +92,36 @@ def create_app(test_config=None):
             except Exception:
                 abort(400)
 
-
     #  Delete Guide
     @app.route('/guides/<id>', methods=['DELETE'])
     @requires_auth('delete:guides')
     def delete_guide(jwt, id):
         guide = Guide.query.filter(Guide.id == id).one_or_none()
         if guide is None:
-          abort(404)
+            abort(404)
         else:
             try:
-              guide.delete()
-              return jsonify({
-                'success': True,
-                'deleted': id,
-                })
+                guide.delete()
+                return jsonify({
+                    'success': True,
+                    'deleted': id,
+                    })
             except Exception:
                 abort(422)
 
-
-    #----------------------------------------------------------------------------#
-    # Travels
-    #----------------------------------------------------------------------------#
-    @app.route('/travels')
+    # Travels --------------------------------------#
+    @app.route('/travels', methods=['GET'])
     @requires_auth('read:travels')
     def travels(jwt):
         travels = Travel.query.all()
         try:
             travels_list = format_list(Travel.query.all())
             return jsonify({
-            'success': True,
-            'travels': travels_list
-            })
+                'success': True,
+                'travels': travels_list
+                })
         except Exception:
             abort(404)
-
 
     # Create Travel
     @app.route('/travels', methods=['POST'])
@@ -157,7 +145,6 @@ def create_app(test_config=None):
             })
         except Exception:
             abort(404)
-
 
     # Update Travel
     @app.route('/travels/<id>', methods=['PATCH'])
@@ -186,7 +173,6 @@ def create_app(test_config=None):
             except Exception:
                 abort(400)
 
-
     # Delete Travel
     @app.route('/travels/<id>', methods=['DELETE'])
     @requires_auth('delete:travels')
@@ -196,18 +182,15 @@ def create_app(test_config=None):
           abort(404)
         else:
             try:
-              travel.delete()
-              return jsonify({
-                'success': True,
-                'deleted': id,
-                })
+                travel.delete()
+                return jsonify({
+                    'success': True,
+                    'deleted': id,
+                    })
             except Exception:
                 abort(422)
 
-
-    #----------------------------------------------------------------------------#
-    # Error Handling
-    #----------------------------------------------------------------------------#
+    # Error Handling -------------------------------#
     @app.errorhandler(400)
     def bad_request(error):
         return jsonify({
@@ -215,7 +198,6 @@ def create_app(test_config=None):
             "error": 400,
             "message": "bad request"
         }), 400
-
 
     @app.errorhandler(AuthError)
     def auth_error_message(error):
@@ -225,7 +207,6 @@ def create_app(test_config=None):
             "message": error.error['code']
         }), error.status_code
 
-
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({
@@ -233,7 +214,6 @@ def create_app(test_config=None):
             "error": 404,
             "message": "resource not found"
         }), 404
-
 
     @app.errorhandler(422)
     def unprocessable(error):
@@ -243,9 +223,7 @@ def create_app(test_config=None):
             "message": "unprocessable"
         }), 422
 
-
     return app
-
 
 app = create_app()
 
